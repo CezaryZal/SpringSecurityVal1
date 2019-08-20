@@ -16,20 +16,26 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         User.UserBuilder userBuilder = User.withDefaultPasswordEncoder();
 
-        auth.inMemoryAuthentication().withUser(userBuilder.username("Jhon").password("test123").roles("Employer"));
-        auth.inMemoryAuthentication().withUser(userBuilder.username("Mary").password("test123").roles("Manager"));
-        auth.inMemoryAuthentication().withUser(userBuilder.username("Susan").password("test123").roles("Admin"));
+        auth.inMemoryAuthentication().withUser(userBuilder.username("Jhon").password("test123").roles("EMPLOYEE"));
+        auth.inMemoryAuthentication().withUser(userBuilder.username("Mary").password("test123").roles("EMPLOYEE", "MANAGER"));
+        auth.inMemoryAuthentication().withUser(userBuilder.username("Tom").password("test123").roles("EMPLOYEE", "ADMIN"));
+        auth.inMemoryAuthentication().withUser(userBuilder.username("Susan").password("test123").roles("ADMIN"));
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-                .anyRequest().authenticated()
+//                .anyRequest().authenticated() --> this is access for any users
+                .antMatchers("/").hasRole("EMPLOYEE")
+                .antMatchers("/leaders/**").hasRole("MANAGER")
+                .antMatchers("/systems/**").hasRole("ADMIN")
                 .and().formLogin()
                     .loginPage("/showMyLoginPage")
                     .loginProcessingUrl("/authenticateTheUser")
                     .permitAll()
                 .and()
-                .logout().permitAll();
+                .logout().permitAll()
+                .and()
+                .exceptionHandling().accessDeniedPage("/access-denied");
     }
 }
